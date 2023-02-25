@@ -65,8 +65,17 @@
                     console.log("Download %s from %s", upload.file.name, upload.url)
                 }
             })
+            upload.findPreviousUploads().then((previousUploads) => {
 
-            upload.start()
+                var chosenUpload = askToResumeUpload(previousUploads);
+
+                if (chosenUpload) {
+                    upload.resumeFromPreviousUpload(chosenUpload);
+                }
+
+                upload.start();
+            });
+            //upload.start()
         });
 
         //暂停
@@ -79,6 +88,24 @@
             upload.start()
         });
 
+        function askToResumeUpload(previousUploads) {
+            if (previousUploads.length === 0) return null;
+
+            console.log(previousUploads);
+
+            var text = "系统查询到您之前上传过此文件是否恢复上传？:\n\n";
+            previousUploads.forEach((previousUpload, index) => {
+                text += "[" + index + "] " + previousUpload.creationTime + "\n";
+            });
+            text += "\n输入相应的号码恢复上传或按“取消”键重新上传";
+
+            var answer = prompt(text);
+            var index = parseInt(answer, 10);
+
+            if (!isNaN(index) && previousUploads[index]) {
+                return previousUploads[index];
+            }
+        }
         //上传进度展示
         function onProgress(bytesUploaded, bytesTotal) {
             var percentage = (bytesUploaded / bytesTotal * 100).toFixed(2);

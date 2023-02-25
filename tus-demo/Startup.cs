@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using tus_demo.Endpoints;
 using tusdotnet;
+using tusdotnet.Interfaces;
 using tusdotnet.Models;
 using tusdotnet.Models.Configuration;
 using tusdotnet.Models.Expiration;
@@ -71,7 +72,7 @@ namespace tus_demo
             {
                 UrlPath = "/files",
                 //文件存储路径
-                Store = new TusDiskStore(tusFiles),
+                Store = new TusDiskStore(tusFiles, true),
                 //元数据是否允许空值
                 MetadataParsingStrategy = MetadataParsingStrategy.AllowEmptyValues,
                 //文件过期后不再更新
@@ -87,7 +88,7 @@ namespace tus_demo
 
                         //获取上传文件元数据
                         var metadatas = await file.GetMetadataAsync(ctx.CancellationToken);
-                        
+
                         //获取上述文件元数据中的目标文件名称
                         var fileNameMetadata = metadatas["name"];
 
@@ -97,10 +98,16 @@ namespace tus_demo
                         var extensionName = Path.GetExtension(fileName);
 
                         //将上传文件转换为实际目标文件
-                        File.Move(Path.Combine(tusFiles, ctx.FileId), Path.Combine(tusFiles, $"{ctx.FileId}{extensionName}"));
+                        File.Move(Path.Combine(tusFiles, ctx.FileId), Path.Combine(tusFiles, $"{ctx.FileId}"));
+
+
+                        //var terminationStore = ctx.Store as ITusTerminationStore;
+
+                        //await terminationStore!.DeleteFileAsync(file.Id, ctx.CancellationToken);
                     }
                 }
             };
         }
+
     }
 }
